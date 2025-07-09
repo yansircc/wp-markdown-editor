@@ -6,6 +6,7 @@ class Yansir_MD_Parser {
     
     private $version;
     private $parser;
+    private $footnotes_processor;
     
     public function __construct($version) {
         $this->version = $version;
@@ -13,18 +14,14 @@ class Yansir_MD_Parser {
     }
     
     private function init_parser() {
-        $enable_footnotes = get_option('yansir_md_enable_footnotes', 'no');
+        // 始终使用基础 Parsedown
+        $this->parser = new Parsedown();
+        $this->parser->setSafeMode(true);
         
+        // 如果启用脚注，初始化脚注处理器
+        $enable_footnotes = get_option('yansir_md_enable_footnotes', 'no');
         if ($enable_footnotes === 'yes') {
-            // 使用我们的 ParsedownExtra 包装类
-            $this->parser = new Yansir_MD_ParsedownExtra();
-            // 对于 ParsedownExtra，安全模式可能导致一些问题
-            $this->parser->setSafeMode(false);
-        } else {
-            // 使用基础 Parsedown
-            $this->parser = new Parsedown();
-            // 安全模式
-            $this->parser->setSafeMode(true);
+            $this->footnotes_processor = new Yansir_MD_Footnotes();
         }
     }
     
@@ -45,10 +42,20 @@ class Yansir_MD_Parser {
             return '';
         }
         
+        // 如果启用脚注，先处理脚注
+        if ($this->footnotes_processor) {
+            $markdown = $this->footnotes_processor->process($markdown);
+        }
+        
         // 使用 try-catch 避免解析错误
         try {
             // 解析 Markdown
             $html = $this->parser->text($markdown);
+            
+            // 如果启用脚注，添加脚注 HTML
+            if ($this->footnotes_processor) {
+                $html = $this->footnotes_processor->append_footnotes_html($html);
+            }
         } catch (Exception $e) {
             // 如果解析失败，返回原始内容的 HTML 转义版本
             $html = wp_kses_post($markdown);
