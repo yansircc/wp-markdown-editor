@@ -12,8 +12,16 @@ class Yansir_MD {
     
     public function run() {
         $this->load_dependencies();
+        $this->load_textdomain();
         $this->define_admin_hooks();
         $this->define_public_hooks();
+    }
+    
+    private function load_textdomain() {
+        // 在 init 钩子上加载文本域，符合 WordPress 6.7+ 的要求
+        add_action('init', function() {
+            load_plugin_textdomain('yansir-md', false, dirname(plugin_basename(YANSIR_MD_PLUGIN_DIR)) . '/languages/');
+        });
     }
     
     private function load_dependencies() {
