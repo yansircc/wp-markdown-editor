@@ -36,3 +36,6 @@ wp-content/upgrade/
 *.bak
 *.swp
 *~
+
+# Misc
+/docs/

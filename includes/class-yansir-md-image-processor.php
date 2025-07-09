@@ -1,6 +1,14 @@
 <?php
 /**
- * 图片处理类 - 将 Markdown 图片转换为 figure 标签
+ * Image to figure tag converter
+ *
+ * This file contains the image processor that converts standard img tags
+ * to semantic HTML5 figure elements with figcaption when the image has
+ * a title attribute, enhancing content structure and accessibility.
+ *
+ * @package    Yansir_MD
+ * @since      1.0.0
+ * @license    GPL-3.0+
  */
 class Yansir_MD_Image_Processor {
     

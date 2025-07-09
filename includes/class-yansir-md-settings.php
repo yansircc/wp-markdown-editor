@@ -1,6 +1,14 @@
 <?php
 /**
- * Yansir Markdown 设置类
+ * Plugin settings and configuration class
+ *
+ * This file contains the settings class that handles plugin configuration
+ * options, settings page rendering, and option registration for features
+ * like footnotes, figure tags, and link targets.
+ *
+ * @package    Yansir_MD
+ * @since      1.0.0
+ * @license    GPL-3.0+
  */
 class Yansir_MD_Settings {
     
@@ -21,9 +29,25 @@ class Yansir_MD_Settings {
     }
     
     public function register_settings() {
-        register_setting('yansir_md_settings', 'yansir_md_enable_footnotes');
-        register_setting('yansir_md_settings', 'yansir_md_enable_figure');
-        register_setting('yansir_md_settings', 'yansir_md_links_new_tab');
+        register_setting('yansir_md_settings', 'yansir_md_enable_footnotes', array(
+            'type' => 'string',
+            'sanitize_callback' => array($this, 'sanitize_checkbox'),
+            'default' => 'no'
+        ));
+        register_setting('yansir_md_settings', 'yansir_md_enable_figure', array(
+            'type' => 'string',
+            'sanitize_callback' => array($this, 'sanitize_checkbox'),
+            'default' => 'no'
+        ));
+        register_setting('yansir_md_settings', 'yansir_md_links_new_tab', array(
+            'type' => 'string',
+            'sanitize_callback' => array($this, 'sanitize_checkbox'),
+            'default' => 'no'
+        ));
+    }
+    
+    public function sanitize_checkbox($input) {
+        return ($input === 'yes') ? 'yes' : 'no';
     }
     
     public function render_settings_page() {

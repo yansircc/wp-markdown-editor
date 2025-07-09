@@ -7,7 +7,7 @@
  * Author: Yansir
  * Author URI: https://github.com/yansir
  * License: GPL v3
- * Text Domain: yansir-md
+ * Text Domain: yansir-markdown
  */
 
 // 防止直接访问

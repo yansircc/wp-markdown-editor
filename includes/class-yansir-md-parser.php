@@ -1,6 +1,14 @@
 <?php
 /**
- * Yansir Markdown 解析器类
+ * Markdown parser and content filter class
+ *
+ * This file contains the parser class that converts Markdown to HTML using
+ * Parsedown, handles content filtering, and manages optional processors for
+ * footnotes, images, and links.
+ *
+ * @package    Yansir_MD
+ * @since      1.0.0
+ * @license    GPL-3.0+
  */
 class Yansir_MD_Parser {
     

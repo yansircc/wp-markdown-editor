@@ -1,6 +1,14 @@
 <?php
 /**
- * 简单的脚注处理类
+ * Footnote processor for Markdown content
+ *
+ * This file contains the footnotes processor that handles footnote syntax
+ * in Markdown content, collecting footnote definitions and converting them
+ * to HTML footnotes with proper links and formatting.
+ *
+ * @package    Yansir_MD
+ * @since      1.0.0
+ * @license    GPL-3.0+
  */
 class Yansir_MD_Footnotes {
     

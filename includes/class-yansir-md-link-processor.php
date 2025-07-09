@@ -1,6 +1,14 @@
 <?php
 /**
- * 链接处理类 - 为链接添加 target="_blank" 属性
+ * External link target processor
+ *
+ * This file contains the link processor that adds target="_blank" and
+ * rel="noopener noreferrer" attributes to external links when enabled,
+ * improving user experience and security for external link handling.
+ *
+ * @package    Yansir_MD
+ * @since      1.0.0
+ * @license    GPL-3.0+
  */
 class Yansir_MD_Link_Processor {
     

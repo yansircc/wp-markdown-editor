@@ -1,6 +1,14 @@
 <?php
 /**
- * Yansir Markdown 核心类
+ * Main plugin orchestrator class
+ *
+ * This file contains the main plugin class that coordinates all components
+ * of the Yansir Markdown plugin, including dependency loading, hook setup,
+ * and initialization of admin and public functionality.
+ *
+ * @package    Yansir_MD
+ * @since      1.0.0
+ * @license    GPL-3.0+
  */
 class Yansir_MD {
     
@@ -18,10 +26,8 @@ class Yansir_MD {
     }
     
     private function load_textdomain() {
-        // 在 init 钩子上加载文本域，符合 WordPress 6.7+ 的要求
-        add_action('init', function() {
-            load_plugin_textdomain('yansir-md', false, dirname(plugin_basename(YANSIR_MD_PLUGIN_DIR)) . '/languages/');
-        });
+        // WordPress 4.6+ 会自动加载托管在 WordPress.org 的插件翻译
+        // 不再需要手动调用 load_plugin_textdomain()
     }
     
     private function load_dependencies() {

@@ -1,6 +1,14 @@
 <?php
 /**
- * Yansir Markdown 编辑器类
+ * Editor interface handler class
+ *
+ * This file contains the editor class that handles the SimpleMDE integration,
+ * WordPress Media Library integration, meta box functionality, and content
+ * saving for the Yansir Markdown plugin.
+ *
+ * @package    Yansir_MD
+ * @since      1.0.0
+ * @license    GPL-3.0+
  */
 class Yansir_MD_Editor {
     
