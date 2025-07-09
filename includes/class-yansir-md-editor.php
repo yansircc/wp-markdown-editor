@@ -83,7 +83,9 @@ class Yansir_MD_Editor {
             global $post;
             $markdown_content = '';
             if ($post && !empty($post->post_content_filtered)) {
-                $markdown_content = esc_js($post->post_content_filtered);
+                // 先解码 HTML 实体，然后转义为 JavaScript
+                $markdown_content = html_entity_decode($post->post_content_filtered, ENT_QUOTES, 'UTF-8');
+                $markdown_content = esc_js($markdown_content);
             } elseif ($post && !empty($post->post_content)) {
                 // 如果没有 Markdown 内容，使用 HTML 内容
                 $markdown_content = esc_js($post->post_content);
@@ -148,24 +150,47 @@ class Yansir_MD_Editor {
         if (isset($_POST['yansir_md_enabled']) && $_POST['yansir_md_enabled'] === 'yes') {
             // 获取 Markdown 内容
             if (isset($_POST['yansir_md_content'])) {
+                // 使用 wp_unslash 移除转义，但不进行额外的 HTML 编码
                 $markdown = wp_unslash($_POST['yansir_md_content']);
                 
-                // 保存 Markdown 到 post_content_filtered
+                // 确保引号不被转换为 HTML 实体
+                // WordPress 默认会对 post_content_filtered 进行转义，我们需要保持原始 Markdown
+                remove_filter('content_save_pre', 'wp_filter_post_kses');
+                remove_filter('content_filtered_save_pre', 'wp_filter_post_kses');
+                
+                // 保存原始 Markdown 到 post_content_filtered
                 $data['post_content_filtered'] = $markdown;
                 
                 // 解析 Markdown 并保存到 post_content
                 $parser = new Yansir_MD_Parser($this->version);
                 $data['post_content'] = $parser->parse($markdown);
+                
+                // 恢复过滤器
+                add_filter('content_save_pre', 'wp_filter_post_kses');
+                add_filter('content_filtered_save_pre', 'wp_filter_post_kses');
             }
         }
         
         return $data;
     }
     
+    public function preserve_markdown($content) {
+        // 如果当前正在保存 Markdown 内容，返回原始内容而不进行任何过滤
+        if (isset($_POST['yansir_md_enabled']) && $_POST['yansir_md_enabled'] === 'yes' && isset($_POST['yansir_md_content'])) {
+            return wp_unslash($_POST['yansir_md_content']);
+        }
+        return $content;
+    }
+    
     public function ajax_preview() {
         check_ajax_referer('yansir_md_nonce', 'nonce');
         
+        // 获取内容并移除转义
         $markdown = wp_unslash($_POST['content']);
+        
+        // 确保内容没有被过度编码
+        $markdown = html_entity_decode($markdown, ENT_QUOTES, 'UTF-8');
+        
         $parser = new Yansir_MD_Parser($this->version);
         $html = $parser->parse($markdown);
         

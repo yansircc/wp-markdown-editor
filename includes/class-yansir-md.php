@@ -44,6 +44,9 @@ class Yansir_MD {
         // 保存文章时处理 Markdown
         add_filter('wp_insert_post_data', array($editor, 'save_post'), 10, 2);
         
+        // 防止 Markdown 内容被转义
+        add_filter('content_filtered_save_pre', array($editor, 'preserve_markdown'), 10, 1);
+        
         // 添加元框
         add_action('add_meta_boxes', array($editor, 'add_meta_box'));
         add_action('save_post', array($editor, 'save_meta_box'));
