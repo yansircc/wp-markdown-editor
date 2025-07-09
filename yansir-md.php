@@ -40,11 +40,4 @@ register_activation_hook(__FILE__, function() {
     update_option('yansir_md_enable_footnotes', 'no');
 });
 
-// 卸载钩子
-register_uninstall_hook(__FILE__, function() {
-    delete_option('yansir_md_enable_footnotes');
-    
-    // 清理所有文章的 Markdown 数据
-    global $wpdb;
-    $wpdb->query("DELETE FROM {$wpdb->postmeta} WHERE meta_key = '_yansir_md_enabled'");
-});
+// 卸载逻辑在 uninstall.php 中处理
