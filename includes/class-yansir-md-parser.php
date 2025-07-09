@@ -1,6 +1,6 @@
 <?php
 /**
- * Yansir MD 解析器类
+ * Yansir Markdown 解析器类
  */
 class Yansir_MD_Parser {
     

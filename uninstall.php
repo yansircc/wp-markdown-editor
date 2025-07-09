@@ -1,6 +1,6 @@
 <?php
 /**
- * Yansir MD 卸载脚本
+ * Yansir Markdown 卸载脚本
  */
 
 // 如果不是通过 WordPress 卸载，退出

@@ -1,6 +1,6 @@
 <?php
 /**
- * Yansir MD 核心类
+ * Yansir Markdown 核心类
  */
 class Yansir_MD {
     

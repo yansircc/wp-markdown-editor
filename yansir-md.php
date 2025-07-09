@@ -1,6 +1,6 @@
 <?php
 /**
- * Plugin Name: Yansir MD
+ * Plugin Name: Yansir Markdown
  * Plugin URI: https://github.com/yansir/yansir-md
  * Description: 极简的 WordPress Markdown 编辑器
  * Version: 1.0.0

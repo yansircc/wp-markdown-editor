@@ -1,5 +1,5 @@
 /**
- * Yansir MD 编辑器 JavaScript - SimpleMDE 版本
+ * Yansir Markdown 编辑器 JavaScript - SimpleMDE 版本
  */
 window.yansirMD = {
     simplemde: null,

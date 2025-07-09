@@ -1,6 +1,6 @@
 <?php
 /**
- * Yansir MD 设置类
+ * Yansir Markdown 设置类
  */
 class Yansir_MD_Settings {
     
@@ -12,8 +12,8 @@ class Yansir_MD_Settings {
     
     public function add_settings_page() {
         add_options_page(
-            'Yansir MD 设置',
-            'Yansir MD',
+            'Yansir Markdown 设置',
+            'Yansir Markdown',
             'manage_options',
             'yansir-md-settings',
             array($this, 'render_settings_page')
@@ -29,7 +29,7 @@ class Yansir_MD_Settings {
     public function render_settings_page() {
         ?>
         <div class="wrap">
-            <h1>Yansir MD 设置</h1>
+            <h1>Yansir Markdown 设置</h1>
             
             <form method="post" action="options.php">
                 <?php settings_fields('yansir_md_settings'); ?>

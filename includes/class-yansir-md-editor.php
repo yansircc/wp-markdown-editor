@@ -1,6 +1,6 @@
 <?php
 /**
- * Yansir MD 编辑器类
+ * Yansir Markdown 编辑器类
  */
 class Yansir_MD_Editor {
     
