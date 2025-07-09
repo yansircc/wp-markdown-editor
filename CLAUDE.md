@@ -72,19 +72,23 @@ assets/
 ### JavaScript Architecture
 
 `assets/js/editor.js` implements a single global object `window.yansirMD` with methods:
-- `init()`: Initialize editor
-- `togglePreview()`: Switch between edit/preview modes
-- `uploadImage()`: Handle drag/drop and paste image uploads
+- `init()`: Initialize SimpleMDE editor with visual Markdown formatting
+- `preprocessContent()`: Handle escaping issues (e.g., # signs)
+- `postprocessContent()`: Process content before saving
+- `uploadImage()`: Handle drag/drop, paste, and button click image uploads
+- `renderPreview()`: Custom preview rendering via AJAX
 - `syncContent()`: Keep hidden WordPress content field in sync
 
 ### Key Features
 
-1. **Per-post control**: Meta box to enable/disable Markdown per post
-2. **Image uploads**: Drag/drop or paste images, uploaded to media library
-3. **Optional footnotes**: `[^1]` syntax when enabled
-4. **Optional figure tags**: Converts images with titles to semantic HTML5
-5. **Optional link targets**: Opens external links in new tabs when enabled
-6. **Clean uninstall**: Removes all options and post meta on uninstall
+1. **Visual Markdown Editing**: Uses SimpleMDE for WYSIWYG-like Markdown editing with syntax highlighting
+2. **Per-post control**: Meta box to enable/disable Markdown per post
+3. **Image uploads**: Drag/drop, paste, or click button to upload images to media library
+4. **Smart escaping**: Automatically handles # sign escaping issues
+5. **Optional footnotes**: `[^1]` syntax when enabled
+6. **Optional figure tags**: Converts images with titles to semantic HTML5
+7. **Optional link targets**: Opens external links in new tabs when enabled
+8. **Clean uninstall**: Removes all options and post meta on uninstall
 
 ### Important Implementation Details
 

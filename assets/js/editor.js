@@ -20,11 +20,25 @@ window.yansirMD = {
             spellChecker: false,
             status: false,
             toolbar: [
-                "bold", "italic", "heading", "|",
-                "quote", "unordered-list", "ordered-list", "|",
-                "link", "image", "|",
-                "preview", "side-by-side", "fullscreen", "|",
-                "guide"
+                {
+                    name: "image",
+                    action: function(editor) {
+                        // 触发文件选择对话框
+                        var input = document.createElement('input');
+                        input.type = 'file';
+                        input.accept = 'image/*';
+                        input.onchange = function(e) {
+                            if (e.target.files && e.target.files[0]) {
+                                self.uploadImage(e.target.files[0]);
+                            }
+                        };
+                        input.click();
+                    },
+                    className: "fa fa-picture-o",
+                    title: "插入图片"
+                },
+                "|",
+                "preview"
             ],
             renderingConfig: {
                 singleLineBreaks: false,
@@ -35,10 +49,6 @@ window.yansirMD = {
                 // 使用自定义预览渲染
                 self.renderPreview(plainText, preview);
                 return "加载中...";
-            },
-            // 处理图片上传
-            insertTexts: {
-                image: ["![", "](#url#)"]
             }
         });
         
