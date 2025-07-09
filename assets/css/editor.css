@@ -107,3 +107,23 @@
     border-top: 1px solid #ddd;
     font-size: 0.9em;
 }
+
+/* Figure 样式 */
+.yansir-md-preview figure {
+    margin: 1.5em 0;
+    text-align: center;
+}
+
+.yansir-md-preview figure img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 0 auto;
+}
+
+.yansir-md-preview figure figcaption {
+    margin-top: 0.5em;
+    font-size: 0.9em;
+    color: #666;
+    font-style: italic;
+}

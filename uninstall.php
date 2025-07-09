@@ -10,6 +10,7 @@ if (!defined('WP_UNINSTALL_PLUGIN')) {
 
 // 删除选项
 delete_option('yansir_md_enable_footnotes');
+delete_option('yansir_md_enable_figure');
 
 // 清理所有文章的 Markdown 元数据
 global $wpdb;

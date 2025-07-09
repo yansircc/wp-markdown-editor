@@ -38,6 +38,7 @@ add_action('plugins_loaded', 'run_yansir_md');
 // 激活钩子
 register_activation_hook(__FILE__, function() {
     update_option('yansir_md_enable_footnotes', 'no');
+    update_option('yansir_md_enable_figure', 'no');
 });
 
 // 卸载逻辑在 uninstall.php 中处理

@@ -22,6 +22,7 @@ class Yansir_MD_Settings {
     
     public function register_settings() {
         register_setting('yansir_md_settings', 'yansir_md_enable_footnotes');
+        register_setting('yansir_md_settings', 'yansir_md_enable_figure');
     }
     
     public function render_settings_page() {
@@ -45,6 +46,21 @@ class Yansir_MD_Settings {
                                 启用后可以使用 [^1] 这样的脚注语法<br>
                                 示例：这是一段文字[^1]。<br>
                                 [^1]: 这是脚注内容。
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">使用 Figure 标签显示图片</th>
+                        <td>
+                            <label>
+                                <input type="checkbox" name="yansir_md_enable_figure" value="yes" 
+                                    <?php checked(get_option('yansir_md_enable_figure'), 'yes'); ?>>
+                                将图片转换为 figure 标签，title 属性显示为 figcaption
+                            </label>
+                            <p class="description">
+                                启用后，图片语法会转换为语义化的 HTML5 figure 元素<br>
+                                示例：![alt文字](图片地址 "标题文字")<br>
+                                将转换为：&lt;figure&gt;&lt;img src="..." alt="..."&gt;&lt;figcaption&gt;标题文字&lt;/figcaption&gt;&lt;/figure&gt;
                             </p>
                         </td>
                     </tr>

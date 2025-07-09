@@ -26,6 +26,7 @@ class Yansir_MD {
     
     private function load_dependencies() {
         require_once YANSIR_MD_PLUGIN_DIR . 'includes/class-yansir-md-footnotes.php';
+        require_once YANSIR_MD_PLUGIN_DIR . 'includes/class-yansir-md-image-processor.php';
         require_once YANSIR_MD_PLUGIN_DIR . 'includes/class-yansir-md-editor.php';
         require_once YANSIR_MD_PLUGIN_DIR . 'includes/class-yansir-md-parser.php';
         require_once YANSIR_MD_PLUGIN_DIR . 'includes/class-yansir-md-settings.php';
