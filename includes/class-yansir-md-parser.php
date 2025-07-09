@@ -16,8 +16,8 @@ class Yansir_MD_Parser {
         $enable_footnotes = get_option('yansir_md_enable_footnotes', 'no');
         
         if ($enable_footnotes === 'yes') {
-            // 使用 Parsedown Extra 以支持脚注
-            $this->parser = new ParsedownExtra();
+            // 使用我们的 ParsedownExtra 包装类
+            $this->parser = new Yansir_MD_ParsedownExtra();
             // 对于 ParsedownExtra，安全模式可能导致一些问题
             $this->parser->setSafeMode(false);
         } else {
