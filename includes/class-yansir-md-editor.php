@@ -50,6 +50,9 @@ class Yansir_MD_Editor {
             true
         );
         
+        // 加载 WordPress 媒体库
+        wp_enqueue_media();
+        
         // 加载自定义 JS
         wp_enqueue_script(
             'yansir-md-editor',

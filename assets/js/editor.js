@@ -23,16 +23,8 @@ window.yansirMD = {
                 {
                     name: "image",
                     action: function(editor) {
-                        // 触发文件选择对话框
-                        var input = document.createElement('input');
-                        input.type = 'file';
-                        input.accept = 'image/*';
-                        input.onchange = function(e) {
-                            if (e.target.files && e.target.files[0]) {
-                                self.uploadImage(e.target.files[0]);
-                            }
-                        };
-                        input.click();
+                        // 使用 WordPress 媒体库
+                        self.openMediaLibrary();
                     },
                     className: "fa fa-picture-o",
                     title: "插入图片"
@@ -209,6 +201,42 @@ window.yansirMD = {
         var content = this.simplemde.value();
         // 同步到原始的 content 字段
         jQuery('#content').val(content);
+    },
+    
+    openMediaLibrary: function() {
+        var self = this;
+        
+        // 如果媒体框架已经存在，重新打开
+        if (this.mediaFrame) {
+            this.mediaFrame.open();
+            return;
+        }
+        
+        // 创建媒体框架
+        this.mediaFrame = wp.media({
+            title: '选择或上传图片',
+            button: {
+                text: '插入图片'
+            },
+            multiple: false,
+            library: {
+                type: 'image'
+            }
+        });
+        
+        // 当图片被选中时
+        this.mediaFrame.on('select', function() {
+            var attachment = self.mediaFrame.state().get('selection').first().toJSON();
+            var imageUrl = attachment.url;
+            var imageAlt = attachment.alt || attachment.title || '';
+            
+            // 插入 Markdown 格式的图片
+            var markdown = '![' + imageAlt + '](' + imageUrl + ')';
+            self.simplemde.codemirror.replaceSelection(markdown);
+        });
+        
+        // 打开媒体框架
+        this.mediaFrame.open();
     },
     
     beforeSubmit: function() {
