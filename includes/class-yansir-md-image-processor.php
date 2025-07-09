@@ -15,7 +15,8 @@ class Yansir_MD_Image_Processor {
         libxml_use_internal_errors(true);
         
         // 加载 HTML，添加 UTF-8 编码声明
-        $html = mb_convert_encoding($html, 'HTML-ENTITIES', 'UTF-8');
+        // 使用 mb_encode_numericentity 替代已弃用的 mb_convert_encoding
+        $html = mb_encode_numericentity($html, [0x80, 0x10FFFF, 0, 0x1FFFFF], 'UTF-8');
         $dom->loadHTML('<!DOCTYPE html><html><head><meta charset="UTF-8"></head><body>' . $html . '</body></html>', LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
         
         // 获取所有 img 标签

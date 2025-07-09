@@ -61,7 +61,7 @@ class Yansir_MD {
     private function define_public_hooks() {
         $parser = new Yansir_MD_Parser($this->version);
         
-        // 前端显示时解析 Markdown
-        add_filter('the_content', array($parser, 'parse_content'), 1);
+        // 前端显示时解析 Markdown（优先级设为 5，在 wpautop 之前）
+        add_filter('the_content', array($parser, 'parse_content'), 5);
     }
 }

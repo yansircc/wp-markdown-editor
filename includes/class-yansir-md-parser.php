@@ -99,23 +99,21 @@ class Yansir_MD_Parser {
     public function parse_content($content) {
         global $post;
         
-        // 检查是否为文章页面
-        if (!is_singular() || !$post) {
-            return $content;
-        }
-        
         // 检查是否启用了 Markdown
-        if (get_post_meta($post->ID, '_yansir_md_enabled', true) !== 'yes') {
+        if (!$post || get_post_meta($post->ID, '_yansir_md_enabled', true) !== 'yes') {
             return $content;
         }
         
-        // 获取 Markdown 内容
-        $markdown = $post->post_content_filtered;
-        if (empty($markdown)) {
+        // 如果在后台编辑器中，不解析（保持 Markdown 格式）
+        if (is_admin() && !wp_doing_ajax()) {
             return $content;
         }
         
-        // 解析并返回
-        return $this->parse($markdown);
+        // 移除 WordPress 的自动格式化，因为 Markdown 已经处理了格式
+        remove_filter('the_content', 'wpautop');
+        remove_filter('the_content', 'wptexturize');
+        
+        // 解析 Markdown（现在 content 本身就是 Markdown）
+        return $this->parse($content);
     }
 }

@@ -89,31 +89,19 @@ class Yansir_MD_Editor {
             // 初始化编辑器
             window.yansirMD.init();
             
-            // 获取 Markdown 内容（优先使用 post_content_filtered）
+            // 获取 Markdown 内容（现在直接从 post_content 获取）
             <?php 
-            global $post, $wpdb;
+            global $post;
             $markdown_content = '';
-            if ($post) {
-                // 直接从数据库获取原始内容，避免任何过滤
-                $raw_content = $wpdb->get_var($wpdb->prepare(
-                    "SELECT post_content_filtered FROM {$wpdb->posts} WHERE ID = %d",
-                    $post->ID
-                ));
-                
-                if (!empty($raw_content)) {
-                    // 只进行 JavaScript 转义，不进行 HTML 实体编码
-                    $markdown_content = esc_js($raw_content);
-                } elseif (!empty($post->post_content)) {
-                    // 如果没有 Markdown 内容，使用 HTML 内容
-                    $markdown_content = esc_js($post->post_content);
-                }
+            if ($post && !empty($post->post_content)) {
+                // 只进行 JavaScript 转义，不进行 HTML 实体编码
+                $markdown_content = esc_js($post->post_content);
             }
             ?>
             
             var markdownContent = '<?php echo $markdown_content; ?>';
             if (markdownContent) {
                 $('#yansir-md-editor').val(markdownContent);
-                window.yansirMD.syncContent();
             }
         });
         </script>
@@ -161,46 +149,26 @@ class Yansir_MD_Editor {
         
         $enabled = isset($_POST['yansir_md_enabled']) ? 'yes' : 'no';
         update_post_meta($post_id, '_yansir_md_enabled', $enabled);
-        
-        // 如果启用了 Markdown，保存原始 Markdown 内容
-        if ($enabled === 'yes') {
-            global $yansir_md_temp_content;
-            if (!empty($yansir_md_temp_content)) {
-                // 直接更新数据库，绕过所有过滤器
-                global $wpdb;
-                $wpdb->update(
-                    $wpdb->posts,
-                    array('post_content_filtered' => $yansir_md_temp_content),
-                    array('ID' => $post_id),
-                    array('%s'),
-                    array('%d')
-                );
-                
-                // 清空临时内容
-                $yansir_md_temp_content = '';
-            }
-        }
     }
     
     public function save_post($data, $postarr) {
+        // 检查是否是自动保存
+        if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) {
+            return $data;
+        }
+        
         // 检查是否启用了 Markdown
         if (isset($_POST['yansir_md_enabled']) && $_POST['yansir_md_enabled'] === 'yes') {
             // 获取 Markdown 内容
-            if (isset($_POST['yansir_md_content'])) {
+            if (isset($_POST['yansir_md_content']) && !empty($_POST['yansir_md_content'])) {
                 // 使用 wp_unslash 移除转义
                 $markdown = wp_unslash($_POST['yansir_md_content']);
                 
-                // 解析 Markdown 并保存到 post_content
-                $parser = new Yansir_MD_Parser($this->version);
-                $data['post_content'] = $parser->parse($markdown);
+                // 直接保存 Markdown 到 post_content（像 markup-markdown 一样）
+                $data['post_content'] = $markdown;
                 
-                // 暂时不保存到 post_content_filtered，稍后通过钩子保存
-                // 这样可以绕过 WordPress 的过滤
-                $data['post_content_filtered'] = '';
-                
-                // 使用全局变量临时存储 Markdown 内容
-                global $yansir_md_temp_content;
-                $yansir_md_temp_content = $markdown;
+                // 同时保存到 post_content_filtered 作为备份
+                $data['post_content_filtered'] = $markdown;
             }
         }
         

@@ -212,7 +212,7 @@ window.yansirMD = {
     },
     
     beforeSubmit: function() {
-        // 获取编辑器内容
+        // 获取编辑器内容 - 确保获取的是 Markdown 而不是 HTML
         var content = this.simplemde.value();
         
         // 后处理内容
