@@ -18,13 +18,14 @@ class Yansir_MD_Parser {
         if ($enable_footnotes === 'yes') {
             // 使用 Parsedown Extra 以支持脚注
             $this->parser = new ParsedownExtra();
+            // 对于 ParsedownExtra，安全模式可能导致一些问题
+            $this->parser->setSafeMode(false);
         } else {
             // 使用基础 Parsedown
             $this->parser = new Parsedown();
+            // 安全模式
+            $this->parser->setSafeMode(true);
         }
-        
-        // 安全模式
-        $this->parser->setSafeMode(true);
     }
     
     public function parse($markdown) {
@@ -33,11 +34,25 @@ class Yansir_MD_Parser {
             return '';
         }
         
+        // 确保内容是字符串
+        $markdown = (string) $markdown;
+        
         // 应用过滤器，允许其他插件修改 Markdown
         $markdown = apply_filters('yansir_md_before_parse', $markdown);
         
-        // 解析 Markdown
-        $html = $this->parser->text($markdown);
+        // 再次检查过滤后的内容
+        if (empty($markdown)) {
+            return '';
+        }
+        
+        // 使用 try-catch 避免解析错误
+        try {
+            // 解析 Markdown
+            $html = $this->parser->text($markdown);
+        } catch (Exception $e) {
+            // 如果解析失败，返回原始内容的 HTML 转义版本
+            $html = wp_kses_post($markdown);
+        }
         
         // 应用过滤器，允许其他插件修改解析后的 HTML
         $html = apply_filters('yansir_md_after_parse', $html);

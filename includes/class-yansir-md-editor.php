@@ -77,6 +77,24 @@ class Yansir_MD_Editor {
             
             // 初始化编辑器
             window.yansirMD.init();
+            
+            // 获取 Markdown 内容（优先使用 post_content_filtered）
+            <?php 
+            global $post;
+            $markdown_content = '';
+            if ($post && !empty($post->post_content_filtered)) {
+                $markdown_content = esc_js($post->post_content_filtered);
+            } elseif ($post && !empty($post->post_content)) {
+                // 如果没有 Markdown 内容，使用 HTML 内容
+                $markdown_content = esc_js($post->post_content);
+            }
+            ?>
+            
+            var markdownContent = '<?php echo $markdown_content; ?>';
+            if (markdownContent) {
+                $('#yansir-md-editor').val(markdownContent);
+                window.yansirMD.syncContent();
+            }
         });
         </script>
         <?php
