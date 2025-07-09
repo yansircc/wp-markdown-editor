@@ -4,86 +4,99 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-WP Githuber MD is a WordPress plugin that provides an all-in-one Markdown editor solution. It replaces the WordPress editor with a live-preview Markdown editor (Editor.md) and includes features like syntax highlighting, math rendering, and diagram support.
+Yansir MD is a minimalist WordPress Markdown editor plugin, created as a lite version of the original Githuber MD. It focuses on core Markdown editing functionality with minimal dependencies and a clean architecture.
 
 ## Development Commands
 
-### Initial Setup
 ```bash
-# Install PHP dependencies
+# Install PHP dependencies (Parsedown library)
 composer install
+
+# No build process required - this is a zero-build plugin
+# JavaScript and CSS are vanilla/hand-written
 ```
-
-### CSS Development
-```bash
-# Navigate to SCSS directory and compile
-cd assets/scss
-compass compile
-
-# Watch for SCSS changes
-compass watch
-```
-
-### Code Standards
-```bash
-# Check PHP code standards
-phpcs
-
-# Auto-fix code standard issues
-phpcbf
-```
-
-### Debugging
-To enable debug mode:
-1. Edit `githuber-md.php` and set `define('GITHUBER_DEBUG_MODE', true);`
-2. Install Monolog: `composer require monolog/monolog`
-3. After debugging, remove: `composer remove monolog/monolog`
 
 ## Architecture
 
-### MVC Structure
-- **Controllers** (`src/Controllers/`): Handle WordPress admin functionality and hooks
-- **Models** (`src/Models/`): Data management (limited use in this plugin)
-- **Views** (`src/Views/`): PHP templates for rendering UI
-- **Modules** (`src/Modules/`): Feature modules (Markdown parsers, syntax highlighting, math rendering, etc.)
+### Plugin Structure
+```
+yansir-md.php              # Plugin entry point, version 1.0.0
+includes/                  # Core PHP classes
+├── class-yansir-md.php    # Main orchestrator class
+├── class-yansir-md-editor.php     # Editor UI and save logic
+├── class-yansir-md-parser.php     # Markdown parsing
+├── class-yansir-md-settings.php   # Settings page
+├── class-yansir-md-footnotes.php  # Footnote processor
+└── class-yansir-md-image-processor.php  # Image-to-figure converter
+assets/
+├── css/editor.css         # Editor styles
+└── js/editor.js          # Editor JavaScript (vanilla)
+```
 
-### Key Classes
-- `githuber-md.php`: Plugin entry point, defines constants
-- `src/Githuber.php`: Main plugin class, handles initialization
-- `src/Controllers/Markdown.php`: Core Markdown editor functionality
-- `src/Controllers/Setting.php`: Plugin settings management
+### Core Classes
 
-### Data Storage
-- Markdown content: Stored in `wp_posts.post_content_filtered`
-- HTML content: Stored in `wp_posts.post_content`
-- Settings: WordPress options table with `githuber_markdown_` prefix
+**Yansir_MD**: Main plugin class that orchestrates initialization
+- Loads dependencies in correct order
+- Sets up WordPress hooks for admin and frontend
+- Manages text domain loading
 
-### Module System
-Modules in `src/Modules/` are conditionally loaded based on settings:
-- MarkdownParser: Basic Markdown parsing
-- MarkdownExtra: Extended Markdown features
-- Prism: Syntax highlighting
-- KaTeX/MathJax: Math rendering
-- Mermaid: Diagram support
-- FlowChart/SequenceDiagram: Additional diagram types
+**Yansir_MD_Editor**: Handles the editing interface
+- Replaces WordPress editor with Markdown textarea
+- Provides AJAX endpoints for preview and image upload
+- Manages per-post Markdown enable/disable via meta box
+- Saves Markdown to `post_content_filtered`, HTML to `post_content`
 
-### Asset Management
-- Frontend assets in `assets/` directory
-- Vendor libraries pre-bundled in `assets/vendor/`
-- CSS compiled from SCSS sources in `assets/scss/`
-- No JavaScript build process - files are hand-written
+**Yansir_MD_Parser**: Converts Markdown to HTML
+- Uses Parsedown for basic Markdown
+- Optionally processes footnotes (custom implementation)
+- Optionally converts images to figure/figcaption tags
+- Applies WordPress filters for extensibility
 
-### Important Development Notes
+**Yansir_MD_Settings**: Plugin configuration
+- Two settings: enable_footnotes and enable_figure
+- Settings stored as WordPress options
 
-1. **WordPress Integration**: The plugin deeply integrates with WordPress editor, replacing it entirely when enabled
-2. **Per-Post Control**: Markdown can be enabled/disabled per post via meta box
-3. **Backward Compatibility**: Carefully handles conversion between HTML and Markdown
-4. **Image Handling**: Supports clipboard paste and upload to various services (Imgur, SM.ms, media library)
-5. **Gutenberg Support**: Has compatibility mode for block editor
+### Data Flow
 
-### Common Tasks
+1. **Editing**: Markdown entered in custom textarea editor
+2. **Preview**: AJAX request to `yansir_md_preview` action
+3. **Saving**: Markdown stored in `post_content_filtered`, parsed HTML in `post_content`
+4. **Display**: Parser checks if post has Markdown enabled, then parses from `post_content_filtered`
 
-- **Adding a new module**: Create class in `src/Modules/`, extend `Module_Base`, register in `src/Controllers/Module.php`
-- **Modifying editor behavior**: Look in `assets/js/githuber-md.js` and `src/Controllers/Markdown.php`
-- **Adding settings**: Update `src/Controllers/Setting.php` and corresponding view in `src/Views/setting/`
-- **Styling changes**: Edit SCSS files in `assets/scss/` and compile with Compass
+### JavaScript Architecture
+
+`assets/js/editor.js` implements a single global object `window.yansirMD` with methods:
+- `init()`: Initialize editor
+- `togglePreview()`: Switch between edit/preview modes
+- `uploadImage()`: Handle drag/drop and paste image uploads
+- `syncContent()`: Keep hidden WordPress content field in sync
+
+### Key Features
+
+1. **Per-post control**: Meta box to enable/disable Markdown per post
+2. **Image uploads**: Drag/drop or paste images, uploaded to media library
+3. **Optional footnotes**: `[^1]` syntax when enabled
+4. **Optional figure tags**: Converts images with titles to semantic HTML5
+5. **Clean uninstall**: Removes all options and post meta on uninstall
+
+### Important Implementation Details
+
+- Plugin constants defined: `YANSIR_MD_VERSION`, `YANSIR_MD_PLUGIN_DIR`, `YANSIR_MD_PLUGIN_URL`
+- Text domain: `yansir-md`
+- Minimum PHP: 5.6 (for ParsedownExtra compatibility)
+- AJAX nonce: `yansir_md_nonce`
+- Post meta key: `_yansir_md_enabled`
+- Option keys: `yansir_md_enable_footnotes`, `yansir_md_enable_figure`
+
+### Extension Points
+
+WordPress filters available:
+- `yansir_md_before_parse`: Modify Markdown before parsing
+- `yansir_md_after_parse`: Modify HTML after parsing
+
+### Common Development Tasks
+
+- **Add new setting**: Update `class-yansir-md-settings.php` register_settings() and render_settings_page()
+- **Modify editor UI**: Edit `class-yansir-md-editor.php` editor_init_script() method
+- **Change parsing behavior**: Modify `class-yansir-md-parser.php` parse() method
+- **Add frontend styles**: Edit preview styles in `assets/css/editor.css`
