@@ -80,15 +80,22 @@ class Yansir_MD_Editor {
             
             // 获取 Markdown 内容（优先使用 post_content_filtered）
             <?php 
-            global $post;
+            global $post, $wpdb;
             $markdown_content = '';
-            if ($post && !empty($post->post_content_filtered)) {
-                // 先解码 HTML 实体，然后转义为 JavaScript
-                $markdown_content = html_entity_decode($post->post_content_filtered, ENT_QUOTES, 'UTF-8');
-                $markdown_content = esc_js($markdown_content);
-            } elseif ($post && !empty($post->post_content)) {
-                // 如果没有 Markdown 内容，使用 HTML 内容
-                $markdown_content = esc_js($post->post_content);
+            if ($post) {
+                // 直接从数据库获取原始内容，避免任何过滤
+                $raw_content = $wpdb->get_var($wpdb->prepare(
+                    "SELECT post_content_filtered FROM {$wpdb->posts} WHERE ID = %d",
+                    $post->ID
+                ));
+                
+                if (!empty($raw_content)) {
+                    // 只进行 JavaScript 转义，不进行 HTML 实体编码
+                    $markdown_content = esc_js($raw_content);
+                } elseif (!empty($post->post_content)) {
+                    // 如果没有 Markdown 内容，使用 HTML 内容
+                    $markdown_content = esc_js($post->post_content);
+                }
             }
             ?>
             
@@ -143,6 +150,25 @@ class Yansir_MD_Editor {
         
         $enabled = isset($_POST['yansir_md_enabled']) ? 'yes' : 'no';
         update_post_meta($post_id, '_yansir_md_enabled', $enabled);
+        
+        // 如果启用了 Markdown，保存原始 Markdown 内容
+        if ($enabled === 'yes') {
+            global $yansir_md_temp_content;
+            if (!empty($yansir_md_temp_content)) {
+                // 直接更新数据库，绕过所有过滤器
+                global $wpdb;
+                $wpdb->update(
+                    $wpdb->posts,
+                    array('post_content_filtered' => $yansir_md_temp_content),
+                    array('ID' => $post_id),
+                    array('%s'),
+                    array('%d')
+                );
+                
+                // 清空临时内容
+                $yansir_md_temp_content = '';
+            }
+        }
     }
     
     public function save_post($data, $postarr) {
@@ -150,36 +176,24 @@ class Yansir_MD_Editor {
         if (isset($_POST['yansir_md_enabled']) && $_POST['yansir_md_enabled'] === 'yes') {
             // 获取 Markdown 内容
             if (isset($_POST['yansir_md_content'])) {
-                // 使用 wp_unslash 移除转义，但不进行额外的 HTML 编码
+                // 使用 wp_unslash 移除转义
                 $markdown = wp_unslash($_POST['yansir_md_content']);
-                
-                // 确保引号不被转换为 HTML 实体
-                // WordPress 默认会对 post_content_filtered 进行转义，我们需要保持原始 Markdown
-                remove_filter('content_save_pre', 'wp_filter_post_kses');
-                remove_filter('content_filtered_save_pre', 'wp_filter_post_kses');
-                
-                // 保存原始 Markdown 到 post_content_filtered
-                $data['post_content_filtered'] = $markdown;
                 
                 // 解析 Markdown 并保存到 post_content
                 $parser = new Yansir_MD_Parser($this->version);
                 $data['post_content'] = $parser->parse($markdown);
                 
-                // 恢复过滤器
-                add_filter('content_save_pre', 'wp_filter_post_kses');
-                add_filter('content_filtered_save_pre', 'wp_filter_post_kses');
+                // 暂时不保存到 post_content_filtered，稍后通过钩子保存
+                // 这样可以绕过 WordPress 的过滤
+                $data['post_content_filtered'] = '';
+                
+                // 使用全局变量临时存储 Markdown 内容
+                global $yansir_md_temp_content;
+                $yansir_md_temp_content = $markdown;
             }
         }
         
         return $data;
-    }
-    
-    public function preserve_markdown($content) {
-        // 如果当前正在保存 Markdown 内容，返回原始内容而不进行任何过滤
-        if (isset($_POST['yansir_md_enabled']) && $_POST['yansir_md_enabled'] === 'yes' && isset($_POST['yansir_md_content'])) {
-            return wp_unslash($_POST['yansir_md_content']);
-        }
-        return $content;
     }
     
     public function ajax_preview() {
