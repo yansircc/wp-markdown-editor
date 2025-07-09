@@ -1,56 +1,103 @@
 /**
- * Yansir MD 编辑器 JavaScript
+ * Yansir MD 编辑器 JavaScript - SimpleMDE 版本
  */
 window.yansirMD = {
-    editor: null,
-    preview: null,
-    isPreviewMode: false,
+    simplemde: null,
+    originalContent: '',
     
     init: function() {
-        this.editor = document.getElementById('yansir-md-editor');
-        this.preview = document.getElementById('yansir-md-preview');
+        var self = this;
         
         // 获取原始内容
-        var content = jQuery('#content').val();
-        if (content) {
-            this.editor.value = content;
-        }
+        this.originalContent = jQuery('#content').val();
         
-        // 监听编辑器变化
-        this.editor.addEventListener('input', this.onEditorChange.bind(this));
+        // 处理转义字符 - 在加载内容前处理 # 号转义
+        this.originalContent = this.preprocessContent(this.originalContent);
+        
+        // 初始化 SimpleMDE
+        this.simplemde = new SimpleMDE({
+            element: document.getElementById("yansir-md-editor"),
+            spellChecker: false,
+            status: false,
+            toolbar: [
+                "bold", "italic", "heading", "|",
+                "quote", "unordered-list", "ordered-list", "|",
+                "link", "image", "|",
+                "preview", "side-by-side", "fullscreen", "|",
+                "guide"
+            ],
+            renderingConfig: {
+                singleLineBreaks: false,
+                codeSyntaxHighlighting: true
+            },
+            initialValue: this.originalContent,
+            previewRender: function(plainText, preview) {
+                // 使用自定义预览渲染
+                self.renderPreview(plainText, preview);
+                return "加载中...";
+            },
+            // 处理图片上传
+            insertTexts: {
+                image: ["![", "](#url#)"]
+            }
+        });
+        
+        // 监听变化事件
+        this.simplemde.codemirror.on("change", function() {
+            self.syncContent();
+        });
         
         // 初始化拖拽上传
         this.initDragDrop();
         
-        // 同步内容到隐藏的表单字段
-        this.syncContent();
-        
-        // 表单提交前同步内容
+        // 表单提交前处理
         jQuery('#post').on('submit', this.beforeSubmit.bind(this));
+    },
+    
+    /**
+     * 预处理内容 - 处理转义问题
+     */
+    preprocessContent: function(content) {
+        // 如果内容开头是 # 且后面跟着空格，说明可能是被错误转义的标题
+        // 移除开头的反斜杠转义
+        content = content.replace(/^\\#\s/gm, '# ');
+        content = content.replace(/\n\\#\s/g, '\n# ');
+        
+        return content;
+    },
+    
+    /**
+     * 后处理内容 - 在保存前处理特殊情况
+     */
+    postprocessContent: function(content) {
+        // 这里可以添加保存前的处理逻辑
+        // 比如某些特殊字符的转义
+        return content;
     },
     
     initDragDrop: function() {
         var self = this;
-        var editor = this.editor;
+        var cm = this.simplemde.codemirror;
+        var wrapper = cm.getWrapperElement();
         
         // 阻止默认拖拽行为
-        editor.addEventListener('dragover', function(e) {
+        wrapper.addEventListener('dragover', function(e) {
             e.preventDefault();
             e.stopPropagation();
-            editor.classList.add('dragging');
+            wrapper.classList.add('dragging');
         });
         
-        editor.addEventListener('dragleave', function(e) {
+        wrapper.addEventListener('dragleave', function(e) {
             e.preventDefault();
             e.stopPropagation();
-            editor.classList.remove('dragging');
+            wrapper.classList.remove('dragging');
         });
         
         // 处理拖放
-        editor.addEventListener('drop', function(e) {
+        wrapper.addEventListener('drop', function(e) {
             e.preventDefault();
             e.stopPropagation();
-            editor.classList.remove('dragging');
+            wrapper.classList.remove('dragging');
             
             var files = e.dataTransfer.files;
             if (files.length > 0) {
@@ -63,12 +110,15 @@ window.yansirMD = {
         });
         
         // 粘贴上传
-        editor.addEventListener('paste', function(e) {
-            var items = e.clipboardData.items;
-            for (var i = 0; i < items.length; i++) {
-                if (items[i].type.indexOf('image') !== -1) {
-                    var file = items[i].getAsFile();
-                    self.uploadImage(file);
+        cm.on('paste', function(editor, e) {
+            if (e.clipboardData && e.clipboardData.items) {
+                var items = e.clipboardData.items;
+                for (var i = 0; i < items.length; i++) {
+                    if (items[i].type.indexOf('image') !== -1) {
+                        e.preventDefault();
+                        var file = items[i].getAsFile();
+                        self.uploadImage(file);
+                    }
                 }
             }
         });
@@ -83,8 +133,9 @@ window.yansirMD = {
         formData.append('image', file);
         
         // 插入占位符
-        var placeholder = '\n![上传中...](...)\n';
-        this.insertAtCursor(placeholder);
+        var cm = this.simplemde.codemirror;
+        var placeholder = '![上传中...](...)';
+        cm.replaceSelection(placeholder);
         
         jQuery.ajax({
             url: yansir_md.ajax_url,
@@ -99,45 +150,28 @@ window.yansirMD = {
                     var markdown = '![' + imageName + '](' + imageUrl + ')';
                     
                     // 替换占位符
-                    self.editor.value = self.editor.value.replace(placeholder, '\n' + markdown + '\n');
-                    self.onEditorChange();
+                    var content = self.simplemde.value();
+                    content = content.replace(placeholder, markdown);
+                    self.simplemde.value(content);
                 } else {
                     // 移除占位符
-                    self.editor.value = self.editor.value.replace(placeholder, '');
+                    var content = self.simplemde.value();
+                    content = content.replace(placeholder, '');
+                    self.simplemde.value(content);
                     alert('图片上传失败: ' + (response.data.message || '未知错误'));
                 }
             },
             error: function() {
                 // 移除占位符
-                self.editor.value = self.editor.value.replace(placeholder, '');
+                var content = self.simplemde.value();
+                content = content.replace(placeholder, '');
+                self.simplemde.value(content);
                 alert('图片上传失败');
             }
         });
     },
     
-    insertAtCursor: function(text) {
-        var startPos = this.editor.selectionStart;
-        var endPos = this.editor.selectionEnd;
-        var beforeText = this.editor.value.substring(0, startPos);
-        var afterText = this.editor.value.substring(endPos);
-        
-        this.editor.value = beforeText + text + afterText;
-        this.editor.selectionStart = startPos + text.length;
-        this.editor.selectionEnd = startPos + text.length;
-        this.editor.focus();
-    },
-    
-    togglePreview: function() {
-        this.isPreviewMode = !this.isPreviewMode;
-        
-        if (this.isPreviewMode) {
-            this.showPreview();
-        } else {
-            this.hidePreview();
-        }
-    },
-    
-    showPreview: function() {
+    renderPreview: function(plainText, preview) {
         var self = this;
         
         jQuery.ajax({
@@ -146,38 +180,36 @@ window.yansirMD = {
             data: {
                 action: 'yansir_md_preview',
                 nonce: yansir_md.nonce,
-                content: this.editor.value
+                content: plainText
             },
             success: function(response) {
                 if (response.success) {
-                    self.preview.innerHTML = response.data.html;
-                    self.preview.style.display = 'block';
+                    preview.innerHTML = response.data.html;
+                } else {
+                    preview.innerHTML = '<p>预览失败</p>';
                 }
+            },
+            error: function() {
+                preview.innerHTML = '<p>预览加载错误</p>';
             }
         });
     },
     
-    hidePreview: function() {
-        this.preview.style.display = 'none';
-    },
-    
-    onEditorChange: function() {
-        this.syncContent();
-        
-        // 如果在预览模式，更新预览
-        if (this.isPreviewMode) {
-            this.showPreview();
-        }
-    },
-    
     syncContent: function() {
+        var content = this.simplemde.value();
         // 同步到原始的 content 字段
-        jQuery('#content').val(this.editor.value);
+        jQuery('#content').val(content);
     },
     
     beforeSubmit: function() {
+        // 获取编辑器内容
+        var content = this.simplemde.value();
+        
+        // 后处理内容
+        content = this.postprocessContent(content);
+        
         // 确保内容被同步
-        this.syncContent();
+        jQuery('#content').val(content);
         
         // 添加一个隐藏字段存储 Markdown 内容
         if (!jQuery('#yansir_md_content').length) {
@@ -188,6 +220,6 @@ window.yansirMD = {
             }).appendTo('#post');
         }
         
-        jQuery('#yansir_md_content').val(this.editor.value);
+        jQuery('#yansir_md_content').val(content);
     }
 };

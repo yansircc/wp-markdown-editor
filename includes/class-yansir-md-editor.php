@@ -25,19 +25,36 @@ class Yansir_MD_Editor {
             return;
         }
         
-        // 加载 CSS
+        // 加载 SimpleMDE CSS
+        wp_enqueue_style(
+            'simplemde',
+            'https://cdn.jsdelivr.net/simplemde/latest/simplemde.min.css',
+            array(),
+            '1.11.2'
+        );
+        
+        // 加载自定义 CSS
         wp_enqueue_style(
             'yansir-md-editor',
             YANSIR_MD_PLUGIN_URL . 'assets/css/editor.css',
-            array(),
+            array('simplemde'),
             $this->version
         );
         
-        // 加载 JS
+        // 加载 SimpleMDE JS
+        wp_enqueue_script(
+            'simplemde',
+            'https://cdn.jsdelivr.net/simplemde/latest/simplemde.min.js',
+            array(),
+            '1.11.2',
+            true
+        );
+        
+        // 加载自定义 JS
         wp_enqueue_script(
             'yansir-md-editor',
             YANSIR_MD_PLUGIN_URL . 'assets/js/editor.js',
-            array('jquery'),
+            array('jquery', 'simplemde'),
             $this->version,
             true
         );
@@ -60,16 +77,10 @@ class Yansir_MD_Editor {
             // 隐藏默认编辑器
             $('#postdivrich').hide();
             
-            // 创建 Markdown 编辑器
+            // 创建 SimpleMDE 编辑器容器
             var editorHTML = `
                 <div id="yansir-md-editor-container">
-                    <div class="yansir-md-toolbar">
-                        <button type="button" class="button" onclick="yansirMD.togglePreview()">预览</button>
-                    </div>
-                    <div class="yansir-md-editor-wrap">
-                        <textarea id="yansir-md-editor" class="yansir-md-editor"></textarea>
-                        <div id="yansir-md-preview" class="yansir-md-preview" style="display:none;"></div>
-                    </div>
+                    <textarea id="yansir-md-editor"></textarea>
                 </div>
             `;
             
