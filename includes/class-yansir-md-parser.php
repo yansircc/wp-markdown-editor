@@ -8,6 +8,7 @@ class Yansir_MD_Parser {
     private $parser;
     private $footnotes_processor;
     private $image_processor;
+    private $link_processor;
     
     public function __construct($version) {
         $this->version = $version;
@@ -29,6 +30,12 @@ class Yansir_MD_Parser {
         $enable_figure = get_option('yansir_md_enable_figure', 'no');
         if ($enable_figure === 'yes') {
             $this->image_processor = new Yansir_MD_Image_Processor();
+        }
+        
+        // 如果启用新标签打开链接，初始化链接处理器
+        $links_new_tab = get_option('yansir_md_links_new_tab', 'no');
+        if ($links_new_tab === 'yes') {
+            $this->link_processor = new Yansir_MD_Link_Processor();
         }
     }
     
@@ -72,6 +79,11 @@ class Yansir_MD_Parser {
             // 如果启用图片处理，处理 HTML 中的图片
             if ($this->image_processor) {
                 $html = $this->image_processor->process($html);
+            }
+            
+            // 如果启用链接处理，处理 HTML 中的链接
+            if ($this->link_processor) {
+                $html = $this->link_processor->process($html);
             }
         } catch (Exception $e) {
             // 如果解析失败，返回原始内容的 HTML 转义版本

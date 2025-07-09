@@ -39,6 +39,16 @@ add_action('plugins_loaded', 'run_yansir_md');
 register_activation_hook(__FILE__, function() {
     update_option('yansir_md_enable_footnotes', 'no');
     update_option('yansir_md_enable_figure', 'no');
+    update_option('yansir_md_links_new_tab', 'no');
 });
 
 // 卸载逻辑在 uninstall.php 中处理
+
+// 添加插件设置链接
+add_filter('plugin_action_links_' . plugin_basename(__FILE__), 'yansir_md_add_settings_link');
+
+function yansir_md_add_settings_link($links) {
+    $settings_link = '<a href="' . admin_url('options-general.php?page=yansir-md-settings') . '">设置</a>';
+    array_unshift($links, $settings_link);
+    return $links;
+}

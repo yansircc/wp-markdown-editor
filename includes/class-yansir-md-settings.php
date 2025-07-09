@@ -23,6 +23,7 @@ class Yansir_MD_Settings {
     public function register_settings() {
         register_setting('yansir_md_settings', 'yansir_md_enable_footnotes');
         register_setting('yansir_md_settings', 'yansir_md_enable_figure');
+        register_setting('yansir_md_settings', 'yansir_md_links_new_tab');
     }
     
     public function render_settings_page() {
@@ -61,6 +62,20 @@ class Yansir_MD_Settings {
                                 启用后，图片语法会转换为语义化的 HTML5 figure 元素<br>
                                 示例：![alt文字](图片地址 "标题文字")<br>
                                 将转换为：&lt;figure&gt;&lt;img src="..." alt="..."&gt;&lt;figcaption&gt;标题文字&lt;/figcaption&gt;&lt;/figure&gt;
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">在新标签页打开链接</th>
+                        <td>
+                            <label>
+                                <input type="checkbox" name="yansir_md_links_new_tab" value="yes" 
+                                    <?php checked(get_option('yansir_md_links_new_tab'), 'yes'); ?>>
+                                所有外部链接在新标签页中打开
+                            </label>
+                            <p class="description">
+                                启用后，文章中的所有链接（除脚注链接外）都会添加 target="_blank" 属性<br>
+                                同时添加 rel="noopener noreferrer" 以提高安全性
                             </p>
                         </td>
                     </tr>
