@@ -153,4 +153,48 @@ class Yansir_MD_Editor {
         
         wp_send_json_success(array('html' => $html));
     }
+    
+    public function ajax_upload_image() {
+        check_ajax_referer('yansir_md_nonce', 'nonce');
+        
+        if (!isset($_FILES['image'])) {
+            wp_send_json_error(array('message' => '没有接收到图片'));
+        }
+        
+        $file = $_FILES['image'];
+        
+        // 检查是否是图片
+        $check = getimagesize($file['tmp_name']);
+        if ($check === false) {
+            wp_send_json_error(array('message' => '上传的文件不是有效的图片'));
+        }
+        
+        // 处理上传
+        require_once(ABSPATH . 'wp-admin/includes/file.php');
+        require_once(ABSPATH . 'wp-admin/includes/media.php');
+        require_once(ABSPATH . 'wp-admin/includes/image.php');
+        
+        $upload = wp_handle_upload($file, array('test_form' => false));
+        
+        if (isset($upload['error'])) {
+            wp_send_json_error(array('message' => $upload['error']));
+        }
+        
+        // 添加到媒体库
+        $attachment_id = wp_insert_attachment(array(
+            'post_mime_type' => $upload['type'],
+            'post_title' => sanitize_file_name(pathinfo($file['name'], PATHINFO_FILENAME)),
+            'post_content' => '',
+            'post_status' => 'inherit'
+        ), $upload['file']);
+        
+        // 生成图片元数据
+        $attach_data = wp_generate_attachment_metadata($attachment_id, $upload['file']);
+        wp_update_attachment_metadata($attachment_id, $attach_data);
+        
+        wp_send_json_success(array(
+            'url' => wp_get_attachment_url($attachment_id),
+            'id' => $attachment_id
+        ));
+    }
 }

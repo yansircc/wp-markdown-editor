@@ -28,6 +28,11 @@ class Yansir_MD_Parser {
     }
     
     public function parse($markdown) {
+        // 确保内容不为空
+        if (empty($markdown)) {
+            return '';
+        }
+        
         // 应用过滤器，允许其他插件修改 Markdown
         $markdown = apply_filters('yansir_md_before_parse', $markdown);
         

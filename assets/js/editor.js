@@ -78,18 +78,16 @@ window.yansirMD = {
         var self = this;
         var formData = new FormData();
         
-        formData.append('action', 'upload-attachment');
-        formData.append('async-upload', file);
-        formData.append('name', file.name);
-        formData.append('_wpnonce', jQuery('#_wpnonce').val());
-        formData.append('post_id', jQuery('#post_ID').val());
+        formData.append('action', 'yansir_md_upload_image');
+        formData.append('nonce', yansir_md.nonce);
+        formData.append('image', file);
         
         // 插入占位符
         var placeholder = '\n![上传中...](...)\n';
         this.insertAtCursor(placeholder);
         
         jQuery.ajax({
-            url: ajaxurl,
+            url: yansir_md.ajax_url,
             type: 'POST',
             data: formData,
             processData: false,
@@ -103,6 +101,10 @@ window.yansirMD = {
                     // 替换占位符
                     self.editor.value = self.editor.value.replace(placeholder, '\n' + markdown + '\n');
                     self.onEditorChange();
+                } else {
+                    // 移除占位符
+                    self.editor.value = self.editor.value.replace(placeholder, '');
+                    alert('图片上传失败: ' + (response.data.message || '未知错误'));
                 }
             },
             error: function() {

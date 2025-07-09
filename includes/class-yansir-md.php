@@ -52,6 +52,7 @@ class Yansir_MD {
         
         // AJAX 处理
         add_action('wp_ajax_yansir_md_preview', array($editor, 'ajax_preview'));
+        add_action('wp_ajax_yansir_md_upload_image', array($editor, 'ajax_upload_image'));
     }
     
     private function define_public_hooks() {
