@@ -27,7 +27,8 @@ includes/                  # Core PHP classes
 ├── class-yansir-md-parser.php     # Markdown parsing
 ├── class-yansir-md-settings.php   # Settings page
 ├── class-yansir-md-footnotes.php  # Footnote processor
-└── class-yansir-md-image-processor.php  # Image-to-figure converter
+├── class-yansir-md-image-processor.php  # Image-to-figure converter
+└── class-yansir-md-link-processor.php   # Link target processor
 assets/
 ├── css/editor.css         # Editor styles
 └── js/editor.js          # Editor JavaScript (vanilla)
@@ -53,8 +54,13 @@ assets/
 - Applies WordPress filters for extensibility
 
 **Yansir_MD_Settings**: Plugin configuration
-- Two settings: enable_footnotes and enable_figure
+- Three settings: enable_footnotes, enable_figure, and links_new_tab
 - Settings stored as WordPress options
+
+**Yansir_MD_Link_Processor**: Processes links in parsed HTML
+- Adds target="_blank" and rel="noopener noreferrer" to external links
+- Only processes links when links_new_tab setting is enabled
+- Integrates with the parser's filter system
 
 ### Data Flow
 
@@ -77,7 +83,8 @@ assets/
 2. **Image uploads**: Drag/drop or paste images, uploaded to media library
 3. **Optional footnotes**: `[^1]` syntax when enabled
 4. **Optional figure tags**: Converts images with titles to semantic HTML5
-5. **Clean uninstall**: Removes all options and post meta on uninstall
+5. **Optional link targets**: Opens external links in new tabs when enabled
+6. **Clean uninstall**: Removes all options and post meta on uninstall
 
 ### Important Implementation Details
 
@@ -86,7 +93,7 @@ assets/
 - Minimum PHP: 5.6 (for ParsedownExtra compatibility)
 - AJAX nonce: `yansir_md_nonce`
 - Post meta key: `_yansir_md_enabled`
-- Option keys: `yansir_md_enable_footnotes`, `yansir_md_enable_figure`
+- Option keys: `yansir_md_enable_footnotes`, `yansir_md_enable_figure`, `yansir_md_links_new_tab`
 
 ### Extension Points
 
