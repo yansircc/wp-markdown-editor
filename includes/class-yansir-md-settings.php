@@ -44,10 +44,30 @@ class Yansir_MD_Settings {
             'sanitize_callback' => array($this, 'sanitize_checkbox'),
             'default' => 'no'
         ));
+        register_setting('yansir_md_settings', 'yansir_md_post_types', array(
+            'type' => 'array',
+            'sanitize_callback' => array($this, 'sanitize_post_types'),
+            'default' => array('post')
+        ));
     }
     
     public function sanitize_checkbox($input) {
         return ($input === 'yes') ? 'yes' : 'no';
+    }
+
+    public function sanitize_post_types($input) {
+        if (!is_array($input)) {
+            return array('post');
+        }
+
+        // 获取所有公开的文章类型
+        $valid_post_types = array_keys(get_post_types(array('public' => true)));
+
+        // 只保留有效的文章类型
+        $sanitized = array_intersect($input, $valid_post_types);
+
+        // 如果没有选择任何类型,默认返回 post
+        return empty($sanitized) ? array('post') : array_values($sanitized);
     }
     
     public function render_settings_page() {
@@ -93,13 +113,40 @@ class Yansir_MD_Settings {
                         <th scope="row">在新标签页打开链接</th>
                         <td>
                             <label>
-                                <input type="checkbox" name="yansir_md_links_new_tab" value="yes" 
+                                <input type="checkbox" name="yansir_md_links_new_tab" value="yes"
                                     <?php checked(get_option('yansir_md_links_new_tab'), 'yes'); ?>>
                                 所有外部链接在新标签页中打开
                             </label>
                             <p class="description">
                                 启用后，文章中的所有链接（除脚注链接外）都会添加 target="_blank" 属性<br>
                                 同时添加 rel="noopener noreferrer" 以提高安全性
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">启用的文章类型</th>
+                        <td>
+                            <?php
+                            $enabled_post_types = get_option('yansir_md_post_types', array('post'));
+                            $post_types = get_post_types(array('public' => true), 'objects');
+
+                            foreach ($post_types as $post_type) {
+                                $checked = in_array($post_type->name, $enabled_post_types);
+                                ?>
+                                <label style="display: block; margin-bottom: 8px;">
+                                    <input type="checkbox"
+                                           name="yansir_md_post_types[]"
+                                           value="<?php echo esc_attr($post_type->name); ?>"
+                                           <?php checked($checked); ?>>
+                                    <?php echo esc_html($post_type->label); ?>
+                                    <span style="color: #666;">(<?php echo esc_html($post_type->name); ?>)</span>
+                                </label>
+                                <?php
+                            }
+                            ?>
+                            <p class="description">
+                                选择哪些文章类型可以使用 Markdown 编辑器<br>
+                                默认只启用"文章(post)"类型
                             </p>
                         </td>
                     </tr>

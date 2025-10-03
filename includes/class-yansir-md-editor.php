@@ -17,6 +17,16 @@ class Yansir_MD_Editor {
     public function __construct($version) {
         $this->version = $version;
     }
+
+    /**
+     * 获取已启用 Markdown 的文章类型
+     *
+     * @return array 文章类型数组
+     */
+    private function get_enabled_post_types() {
+        $post_types = get_option('yansir_md_post_types', array('post'));
+        return is_array($post_types) ? $post_types : array('post');
+    }
     
     public function set_default_editor() {
         return 'html';
@@ -120,11 +130,13 @@ class Yansir_MD_Editor {
     }
     
     public function add_meta_box() {
+        $post_types = $this->get_enabled_post_types();
+
         add_meta_box(
             'yansir_md_meta_box',
             'Markdown 编辑器',
             array($this, 'render_meta_box'),
-            array('post', 'page'),
+            $post_types,
             'side',
             'high'
         );
