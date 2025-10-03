@@ -130,7 +130,15 @@ class Yansir_MD_Settings {
                             $enabled_post_types = get_option('yansir_md_post_types', array('post'));
                             $post_types = get_post_types(array('public' => true), 'objects');
 
+                            // 排除不适合使用 Markdown 的文章类型
+                            $excluded_types = array('attachment', 'tangible_template', 'tangible_layout', 'tangible_style', 'tangible_script');
+
                             foreach ($post_types as $post_type) {
+                                // 跳过排除的类型
+                                if (in_array($post_type->name, $excluded_types)) {
+                                    continue;
+                                }
+
                                 $checked = in_array($post_type->name, $enabled_post_types);
                                 ?>
                                 <label style="display: block; margin-bottom: 8px;">
