@@ -39,3 +39,5 @@ wp-content/upgrade/
 
 # Misc
 /docs/
+
+*.zip

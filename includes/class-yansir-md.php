@@ -34,6 +34,7 @@ class Yansir_MD {
         require_once YANSIR_MD_PLUGIN_DIR . 'includes/class-yansir-md-footnotes.php';
         require_once YANSIR_MD_PLUGIN_DIR . 'includes/class-yansir-md-image-processor.php';
         require_once YANSIR_MD_PLUGIN_DIR . 'includes/class-yansir-md-link-processor.php';
+        require_once YANSIR_MD_PLUGIN_DIR . 'includes/class-yansir-md-youtube.php';
         require_once YANSIR_MD_PLUGIN_DIR . 'includes/class-yansir-md-editor.php';
         require_once YANSIR_MD_PLUGIN_DIR . 'includes/class-yansir-md-parser.php';
         require_once YANSIR_MD_PLUGIN_DIR . 'includes/class-yansir-md-settings.php';
@@ -65,9 +66,33 @@ class Yansir_MD {
     }
     
     private function define_public_hooks() {
-        $parser = new Yansir_MD_Parser($this->version);
-        
+        $parser = new Yansir_MD_Parser();
+
         // 前端显示时解析 Markdown（优先级设为 5，在 wpautop 之前）
         add_filter('the_content', array($parser, 'parse_content'), 5);
+
+        // 加载前端样式（仅在单篇文章/页面时）
+        add_action('wp_enqueue_scripts', array($this, 'enqueue_frontend_styles'));
+    }
+
+    /**
+     * 加载前端样式（仅在启用 Markdown 的文章上）
+     */
+    public function enqueue_frontend_styles() {
+        if (!is_singular()) {
+            return;
+        }
+
+        global $post;
+        if (!$post || get_post_meta($post->ID, '_yansir_md_enabled', true) !== 'yes') {
+            return;
+        }
+
+        wp_enqueue_style(
+            'yansir-md-frontend',
+            YANSIR_MD_PLUGIN_URL . 'assets/css/frontend.css',
+            array(),
+            $this->version
+        );
     }
 }
