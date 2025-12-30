@@ -11,15 +11,14 @@
  * @license    GPL-3.0+
  */
 class Yansir_MD_Parser {
-    
-    private $version;
+
     private $parser;
     private $footnotes_processor;
     private $image_processor;
     private $link_processor;
-    
-    public function __construct($version) {
-        $this->version = $version;
+    private $youtube_processor;
+
+    public function __construct() {
         $this->init_parser();
     }
     
@@ -45,6 +44,9 @@ class Yansir_MD_Parser {
         if ($links_new_tab === 'yes') {
             $this->link_processor = new Yansir_MD_Link_Processor();
         }
+
+        // 初始化 YouTube 处理器（始终启用）
+        $this->youtube_processor = new Yansir_MD_YouTube();
     }
     
     public function parse($markdown) {
@@ -63,7 +65,10 @@ class Yansir_MD_Parser {
         if (empty($markdown)) {
             return '';
         }
-        
+
+        // 预处理 YouTube URL（在 Parsedown 解析前保护它们）
+        $markdown = $this->youtube_processor->preprocess($markdown);
+
         // 如果启用图片处理，预处理 Markdown
         if ($this->image_processor) {
             $markdown = $this->image_processor->preprocessMarkdown($markdown);
@@ -93,6 +98,9 @@ class Yansir_MD_Parser {
             if ($this->link_processor) {
                 $html = $this->link_processor->process($html);
             }
+
+            // 后处理 YouTube 占位符，替换为响应式嵌入
+            $html = $this->youtube_processor->postprocess($html);
         } catch (Exception $e) {
             // 如果解析失败，返回原始内容的 HTML 转义版本
             $html = wp_kses_post($markdown);
@@ -106,22 +114,28 @@ class Yansir_MD_Parser {
     
     public function parse_content($content) {
         global $post;
-        
+
         // 检查是否启用了 Markdown
         if (!$post || get_post_meta($post->ID, '_yansir_md_enabled', true) !== 'yes') {
             return $content;
         }
-        
+
         // 如果在后台编辑器中，不解析（保持 Markdown 格式）
         if (is_admin() && !wp_doing_ajax()) {
             return $content;
         }
-        
+
         // 移除 WordPress 的自动格式化，因为 Markdown 已经处理了格式
         remove_filter('the_content', 'wpautop');
         remove_filter('the_content', 'wptexturize');
-        
+
         // 解析 Markdown（现在 content 本身就是 Markdown）
-        return $this->parse($content);
+        $html = $this->parse($content);
+
+        // 处理 shortcode（因为 Parsedown 会转义 HTML 实体，导致 shortcode 无法被识别）
+        // 在这里处理可以确保 shortcode 正确渲染（如 Elementor 模板等）
+        $html = do_shortcode($html);
+
+        return $html;
     }
 }

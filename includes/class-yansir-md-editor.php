@@ -207,7 +207,7 @@ class Yansir_MD_Editor {
         // 确保内容没有被过度编码
         $markdown = html_entity_decode($markdown, ENT_QUOTES, 'UTF-8');
         
-        $parser = new Yansir_MD_Parser($this->version);
+        $parser = new Yansir_MD_Parser();
         $html = $parser->parse($markdown);
         
         wp_send_json_success(array('html' => $html));
