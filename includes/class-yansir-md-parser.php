@@ -60,11 +60,15 @@ class Yansir_MD_Parser {
         
         // 应用过滤器，允许其他插件修改 Markdown
         $markdown = apply_filters('yansir_md_before_parse', $markdown);
-        
+
         // 再次检查过滤后的内容
         if (empty($markdown)) {
             return '';
         }
+
+        // 将 %[alt](url) 转换为 ![alt](url)，支持 % 作为图片语法的替代前缀
+        // 要求 % 在行首或前面是空白，避免误匹配 "100%[链接](url)" 这类情况
+        $markdown = preg_replace('/(?:^|(?<=\s))%(\[[^\]]+\]\([^\s\)]+(?:\s+"[^"]*")?\))/m', '!$1', $markdown);
 
         // 预处理 YouTube URL（在 Parsedown 解析前保护它们）
         $markdown = $this->youtube_processor->preprocess($markdown);

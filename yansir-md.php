@@ -4,7 +4,7 @@
  * Plugin Name: Yansir Markdown
  * Plugin URI: https://github.com/yansir/yansir-md
  * Description: 极简的 WordPress Markdown 编辑器
- * Version: 1.0.1
+ * Version: 1.1.1
  * Author: Yansir
  * Author URI: https://github.com/yansir
  * License: GPL v3
@@ -17,7 +17,7 @@ if (!defined('WPINC')) {
 }
 
 // 定义插件常量
-define('YANSIR_MD_VERSION', '1.1.0');
+define('YANSIR_MD_VERSION', '1.1.1');
 define('YANSIR_MD_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('YANSIR_MD_PLUGIN_URL', plugin_dir_url(__FILE__));
 
